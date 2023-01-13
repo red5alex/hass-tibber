@@ -1,0 +1,68 @@
+type: custom:apexcharts-card
+header:
+  show: true
+  title: Tibber
+  show_states: false
+  colorize_states: false
+graph_span: 48h
+cache: true
+update_interval: 2min
+span:
+  start: day
+  offset: '-2h'
+now:
+  show: true
+  color: white
+  label: now
+locale: de
+hours_12: false
+yaxis:
+  - id: first
+    show: true
+    min: 0
+    decimals: 0
+    apex_config:
+      tickAmount: 5
+      labels:
+        style:
+          fontSize: 14px
+  - id: second
+    show: false
+    min: 0
+    max: 0.75
+    decimals: 0
+    apex_config:
+      tickAmount: 5
+      labels:
+        style:
+          fontSize: 14px
+all_series_config:
+  stroke_width: 2
+series:
+  - entity: sensor.tibber_price_forecast
+    yaxis_id: first
+    name: Electricty Price
+    float_precision: 1
+    unit: ct/kWh
+    extend_to: false
+    data_generator: return entity.attributes.forecast
+    type: area
+    opacity: 0.25
+    show:
+      extremas: true
+      legend_value: false
+  - entity: sensor.last_meter_consumption_$$YOURHOMENAME$$
+    yaxis_id: second
+    name: Hourly Consumption
+    type: column
+    unit: ct/kWh
+    extend_to: false
+    show:
+      extremas: true
+      legend_value: false
+    group_by:
+      func: diff
+      start_with_last: true
+      duration: 1h
+      fill: 'null'
+    color: '#aaaaaa'

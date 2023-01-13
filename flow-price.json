@@ -1,0 +1,158 @@
+[
+    {
+        "id": "ab2d599a.077738",
+        "type": "tibber-query",
+        "z": "6358b01278c739f5",
+        "name": "Get Tibber prices",
+        "active": true,
+        "apiEndpointRef": "b70ec5d0.6f8f08",
+        "x": 490,
+        "y": 540,
+        "wires": [
+            [
+                "2631a1bef119c9c4"
+            ]
+        ]
+    },
+    {
+        "id": "4f11b5ae.4cc22c",
+        "type": "inject",
+        "z": "6358b01278c739f5",
+        "name": "Refresh",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1200",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "{   viewer {     homes {       currentSubscription{         priceInfo{           today {             total             startsAt           }           tomorrow {             total             startsAt           }         }       }     }   } }",
+        "payloadType": "str",
+        "x": 300,
+        "y": 540,
+        "wires": [
+            [
+                "ab2d599a.077738"
+            ]
+        ]
+    },
+    {
+        "id": "bab5362123aa2a8c",
+        "type": "ha-sensor",
+        "z": "6358b01278c739f5",
+        "name": "Tibber - Forecast",
+        "entityConfig": "f80535717b5b9a70",
+        "version": 0,
+        "state": "payload",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 970,
+        "y": 540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2631a1bef119c9c4",
+        "type": "function",
+        "z": "6358b01278c739f5",
+        "name": "Format to array",
+        "func": "// merge today and tomorrow\n//msg.today = msg.payload.viewer.homes[0].currentSubscription.priceInfo.today\n//msg.tomorrow = msg.payload.viewer.homes[0].currentSubscription.priceInfo.tomorrow\nmsg.forecast = [...msg.payload.viewer.homes[0].currentSubscription.priceInfo.today, \n                ...msg.payload.viewer.homes[0].currentSubscription.priceInfo.tomorrow]\n\n// helper function to convert str to timestamps\nconst toTimestamp = (strDate) => {\n    const dt = new Date(strDate);\n    return dt.getTime()\n}\n\n// set entity attributes (state=0 is a dummy value)\nmsg.payload = { \"state\": 0, \"attributes\": { \"forecast\": msg.forecast.map(({ total, startsAt }) => [toTimestamp(startsAt), total * 100]) } }\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 540,
+        "wires": [
+            [
+                "bab5362123aa2a8c"
+            ]
+        ]
+    },
+    {
+        "id": "b70ec5d0.6f8f08",
+        "type": "tibber-api-endpoint",
+        "queryUrl": "https://api.tibber.com/v1-beta/gql",
+        "feedConnectionTimeout": "30",
+        "feedTimeout": "30",
+        "queryRequestTimeout": "30",
+        "name": "Tibber API",
+        "credentials": {}
+    },
+    {
+        "id": "f80535717b5b9a70",
+        "type": "ha-entity-config",
+        "server": "5f3bd8b0bebd59cd",
+        "deviceConfig": "274dde57e4104584",
+        "name": "Tibber Forecast",
+        "version": "6",
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "tibber_price_forecast"
+            },
+            {
+                "property": "icon",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": ""
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": ""
+            },
+            {
+                "property": "state_class",
+                "value": "measurement"
+            }
+        ],
+        "resend": true,
+        "debugEnabled": false
+    },
+    {
+        "id": "5f3bd8b0bebd59cd",
+        "type": "server",
+        "name": "Home Assistant",
+        "version": 5,
+        "addon": true,
+        "rejectUnauthorizedCerts": true,
+        "ha_boolean": "y|yes|true|on|home|open",
+        "connectionDelay": true,
+        "cacheJson": true,
+        "heartbeat": false,
+        "heartbeatInterval": "30",
+        "areaSelector": "friendlyName",
+        "deviceSelector": "friendlyName",
+        "entitySelector": "friendlyName",
+        "statusSeparator": "at: ",
+        "statusYear": "hidden",
+        "statusMonth": "short",
+        "statusDay": "numeric",
+        "statusHourCycle": "h23",
+        "statusTimeFormat": "h:m",
+        "enableGlobalContextStore": true
+    },
+    {
+        "id": "274dde57e4104584",
+        "type": "ha-device-config",
+        "name": "nodered",
+        "hwVersion": "",
+        "manufacturer": "Node-RED",
+        "model": "",
+        "swVersion": ""
+    }
+]
